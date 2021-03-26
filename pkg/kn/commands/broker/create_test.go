@@ -23,10 +23,12 @@ import (
 
 	clienteventingv1beta1 "knative.dev/client/pkg/eventing/v1beta1"
 	"knative.dev/client/pkg/util"
+	eventing "knative.dev/eventing/pkg/apis/eventing"
 )
 
 var (
 	brokerName = "foo"
+	class      = "Kafka"
 )
 
 func TestBrokerCreate(t *testing.T) {
@@ -38,6 +40,18 @@ func TestBrokerCreate(t *testing.T) {
 	out, err := executeBrokerCommand(eventingClient, "create", brokerName)
 	assert.NilError(t, err, "Broker should be created")
 	assert.Assert(t, util.ContainsAll(out, "Broker", brokerName, "created", "namespace", "default"))
+
+	eventingRecorder.Validate()
+}
+
+func TestBrokerCreateWithClass(t *testing.T) {
+	eventingClient := clienteventingv1beta1.NewMockKnEventingClient(t)
+	eventingRecorder := eventingClient.Recorder()
+	eventingRecorder.CreateBroker(createBrokerWithClass(brokerName, map[string]string{eventing.BrokerClassKey: class}), nil)
+
+	out, err := executeBrokerCommand(eventingClient, "create", brokerName, "--class", class)
+	assert.NilError(t, err, "Broker should be created")
+	assert.Assert(t, util.ContainsAll(out, "Broker", brokerName, "created", "namespac", "default"))
 
 	eventingRecorder.Validate()
 }

@@ -327,3 +327,9 @@ func (b *BrokerBuilder) Namespace(ns string) *BrokerBuilder {
 func (b *BrokerBuilder) Build() *v1beta1.Broker {
 	return b.broker
 }
+
+// Annotations is an key value map
+func (b *BrokerBuilder) Annotations(annotations map[string]string) *BrokerBuilder {
+	b.broker.Annotations = annotations
+	return b
+}

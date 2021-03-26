@@ -24,6 +24,7 @@ import (
 
 	clientv1beta1 "knative.dev/client/pkg/eventing/v1beta1"
 	"knative.dev/client/pkg/kn/commands"
+	eventing "knative.dev/eventing/pkg/apis/eventing"
 )
 
 var createExample = `
@@ -35,6 +36,7 @@ var createExample = `
 
 // NewBrokerCreateCommand represents command to create new broker instance
 func NewBrokerCreateCommand(p *commands.KnParams) *cobra.Command {
+	var class string
 
 	cmd := &cobra.Command{
 		Use:     "create NAME",
@@ -60,6 +62,12 @@ func NewBrokerCreateCommand(p *commands.KnParams) *cobra.Command {
 				NewBrokerBuilder(name).
 				Namespace(namespace)
 
+			annotations := make(map[string]string, 1)
+			if bclass := cmd.Flags().Changed("class"); bclass {
+				annotations[eventing.BrokerClassKey] = class
+				brokerBuilder.Annotations(annotations)
+			}
+
 			err = eventingClient.CreateBroker(brokerBuilder.Build())
 			if err != nil {
 				return fmt.Errorf(
@@ -70,6 +78,8 @@ func NewBrokerCreateCommand(p *commands.KnParams) *cobra.Command {
 			return nil
 		},
 	}
+	flags := cmd.Flags()
 	commands.AddNamespaceFlags(cmd.Flags(), false)
+	flags.StringVar(&class, "class", "", "Create a broker with class.")
 	return cmd
 }
